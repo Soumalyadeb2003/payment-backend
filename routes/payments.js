@@ -30,6 +30,7 @@ router.post("/create-order", auth, async (req, res) => {
       razorpayOrderId: razorpayOrder.id,
       amount: razorpayOrder.amount,
       currency: razorpayOrder.currency,
+      keyId: process.env.RAZORPAY_KEY_ID,
     });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: err.message });
@@ -38,26 +39,24 @@ router.post("/create-order", auth, async (req, res) => {
 
 router.post("/verify", auth, async (req, res) => {
   try {
-    const { orderId, paymentId, signature } = req.body;
+    const { razorpayOrderId, razorpayPaymentId, razorpaySignature, orderId } = req.body;
 
     const crypto = require("crypto");
     const hmac = crypto.createHmac("sha256", process.env.RAZORPAY_KEY_SECRET);
-    hmac.update(orderId + "|" + paymentId);
+    hmac.update(razorpayOrderId + "|" + razorpayPaymentId);
     const generatedSignature = hmac.digest("hex");
 
-    if (generatedSignature === signature) {
-      await Order.findOneAndUpdate(
-        { razorpayOrderId: orderId },
+    if (generatedSignature === razorpaySignature) {
+      await Order.findByIdAndUpdate(
+        orderId,
         { paymentStatus: "success" }
       );
-
       res.json({ message: "Payment verified successfully!", success: true });
     } else {
-      await Order.findOneAndUpdate(
-        { razorpayOrderId: orderId },
+      await Order.findByIdAndUpdate(
+        orderId,
         { paymentStatus: "failed" }
       );
-
       res.status(400).json({ message: "Payment verification failed!", success: false });
     }
   } catch (err) {
