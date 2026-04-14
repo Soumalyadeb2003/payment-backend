@@ -20,20 +20,21 @@ app.get("/", (req, res) => {
   res.send("Soumalya's Payment Portal Backend is running!");
 });
 
+const PORT = process.env.PORT || 5000;
+
 mongoose.connect(process.env.MONGO_URI, {
-    serverSelectionTimeoutMS: 10000,
-    socketTimeoutMS: 45000,
-    family: 4,
-  })
-  .then(() => {
-    console.log("MongoDB connected successfully!");
-    app.listen(process.env.PORT || 5000, () => {
-      console.log("Server running on port 5000");
-    });
-  })
-  .catch((err) => {
-    console.log("MongoDB connection error:", err.message);
-    app.listen(process.env.PORT || 5000, () => {
-      console.log("Server running on port 5000 without MongoDB");
-    });
+  serverSelectionTimeoutMS: 10000,
+  family: 4,
+})
+.then(() => {
+  console.log("MongoDB connected successfully!");
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`Server running on port ${PORT}`);
   });
+})
+.catch((err) => {
+  console.log("MongoDB connection error:", err.message);
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`Server running on port ${PORT} without MongoDB`);
+  });
+});
